@@ -1,0 +1,16 @@
+{
+  "title": "Walking the pier",
+  "category": "people",
+  "image": "/photos/walking-the-pier.jpg",
+  "order": 100,
+  "best": false,
+  "pick": false,
+  "camera": "",
+  "main_label": "Muted",
+  "versions": [
+    {
+      "label": "Bright",
+      "image": "/photos/walking-the-pier-bright.jpg"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "title": "Laughing at the rail, Niagara Falls",
+  "category": "people",
+  "image": "/photos/laughing-at-the-rail-niagara-falls.jpg",
+  "order": 80,
+  "best": false,
+  "pick": false,
+  "camera": "Canon EOS 250D · 47mm · f/5.6 · 1/1000 · ISO 200",
+  "main_label": "Clean",
+  "versions": [
+    {
+      "label": "Gold stamp",
+      "image": "/photos/laughing-at-the-rail-niagara-falls-gold-stamp.jpg"
+    },
+    {
+      "label": "Red stamp",
+      "image": "/photos/laughing-at-the-rail-niagara-falls-red-stamp.jpg"
+    },
+    {
+      "label": "Pink cast",
+      "image": "/photos/laughing-at-the-rail-niagara-falls-pink-cast.jpg"
+    }
+  ]
+}

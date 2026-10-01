@@ -1,0 +1,45 @@
+{
+  "site_title": "Reza M. Monadjemi Photography",
+  "full_name": "Reza M. Monadjemi",
+  "name_line_1": "Reza M.",
+  "name_line_2": "Monadjemi",
+  "alias": "RezaMDI",
+  "eyebrow": "Photographs · London, Ontario",
+  "intro": "Portraits first. People caught mid-turn, mid-laugh, mid-gust, plus the *cities* and *coastlines* in between.",
+  "description": "Portraits, cities and landscapes by Reza M. Monadjemi (RezaMDI), a photographer based in London, Ontario.",
+  "about_title": "Behind the *lens*",
+  "about_text": "I'm Reza M. Monadjemi, also known as RezaMDI, a photographer based in London, Ontario. Most of my work is portraits: people in natural light, on the street, in parks and by the water. Between shoots I photograph the cities and coastlines I pass through.",
+  "facts": [
+    {
+      "label": "Focus",
+      "value": "Portraits"
+    },
+    {
+      "label": "Based in",
+      "value": "London, Ontario"
+    },
+    {
+      "label": "Shot on",
+      "value": "Canon EOS 250D, iPhone 13 Pro"
+    }
+  ],
+  "instagram_handle": "@rprespective",
+  "instagram_url": "https://www.instagram.com/rprespective/",
+  "categories": [
+    {
+      "key": "people",
+      "name": "People",
+      "subtitle": "Close up, in natural light, caught mid-moment."
+    },
+    {
+      "key": "city",
+      "name": "City",
+      "subtitle": "Glass, brick and blue hour, usually looking up."
+    },
+    {
+      "key": "landscape",
+      "name": "Landscape",
+      "subtitle": "Coast, desert and open sky."
+    }
+  ]
+}

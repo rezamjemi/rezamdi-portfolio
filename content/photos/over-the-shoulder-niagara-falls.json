@@ -1,0 +1,20 @@
+{
+  "title": "Over the shoulder, Niagara Falls",
+  "category": "people",
+  "image": "/photos/over-the-shoulder-niagara-falls.jpg",
+  "order": 10,
+  "best": false,
+  "pick": true,
+  "camera": "Canon EOS 250D · 46mm · f/5 · 1/800 · ISO 200",
+  "main_label": "Natural",
+  "versions": [
+    {
+      "label": "Rose",
+      "image": "/photos/over-the-shoulder-niagara-falls-rose.jpg"
+    },
+    {
+      "label": "Faded",
+      "image": "/photos/over-the-shoulder-niagara-falls-faded.jpg"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "title": "Street candid, Clifton Hill",
+  "category": "people",
+  "image": "/photos/street-candid-clifton-hill.jpg",
+  "order": 90,
+  "best": false,
+  "pick": false,
+  "camera": "Canon EOS 250D · 45mm · f/5 · 1/1000 · ISO 200",
+  "main_label": "Clean",
+  "versions": [
+    {
+      "label": "Gold stamp",
+      "image": "/photos/street-candid-clifton-hill-gold-stamp.jpg"
+    },
+    {
+      "label": "Deep shadow",
+      "image": "/photos/street-candid-clifton-hill-deep-shadow.jpg"
+    },
+    {
+      "label": "Bright",
+      "image": "/photos/street-candid-clifton-hill-bright.jpg"
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+# Admin page for the RezaMDI portfolio (Decap CMS).
+# Repository: github.com/rezamjemi/rezamdi-portfolio
+backend:
+  name: github
+  repo: rezamjemi/rezamdi-portfolio
+  branch: main
+  commit_messages:
+    create: "Add photo: {{slug}}"
+    update: "Update {{collection}}: {{slug}}"
+    delete: "Remove photo: {{slug}}"
+    uploadMedia: "Upload {{path}}"
+
+media_folder: photos
+public_folder: /photos
+site_url: /
+logo_url: /favicon.png
+
+collections:
+  - name: photos
+    label: Photos
+    label_singular: Photo
+    description: "Every photo on the site. Add one with the button above; the site updates about a minute after you publish."
+    folder: content/photos
+    create: true
+    delete: true
+    extension: json
+    format: json
+    slug: "{{slug}}"
+    identifier_field: title
+    summary: "{{category}} · {{title}}{{best | ternary(' · ★ Best', '')}}"
+    sortable_fields: [category, order, title]
+    view_filters:
+      - { label: People, field: category, pattern: people }
+      - { label: City, field: category, pattern: city }
+      - { label: Landscape, field: category, pattern: landscape }
+      - { label: "★ Best of category", field: best, pattern: true }
+    view_groups:
+      - { label: Category, field: category }
+    fields:
+      - { label: Photo, name: image, widget: image, choose_url: false, hint: "JPG or PNG. Large photos are fine: the site makes web-sized copies automatically." }
+      - { label: Title, name: title, widget: string }
+      - label: Category
+        name: category
+        widget: select
+        options:
+          - { label: People, value: people }
+          - { label: City, value: city }
+          - { label: Landscape, value: landscape }
+      - { label: Order, name: order, widget: number, value_type: int, default: 100, hint: "Lower numbers show first within the category (10, 20, 30…). Leave 100 to add at the end." }
+      - { label: "Best of category", name: best, widget: boolean, default: false, hint: "Shown large on the home page with a 'Best of' tag. Turn it on for one photo per category." }
+      - { label: "Home page pick", name: pick, widget: boolean, default: false, hint: "One of the three smaller photos next to the best one on the home page." }
+      - { label: "Camera details", name: camera, widget: string, required: false, hint: "Optional. Leave empty and the site reads it from the photo (camera, lens, aperture, shutter, ISO)." }
+      - { label: "Hide from site", name: hidden, widget: boolean, default: false, required: false, hint: "Keeps the photo here but takes it off the website." }
+      - { label: "Name of this version", name: main_label, widget: string, required: false, default: "Original", hint: "Only used when you add filter versions below, e.g. 'Natural'." }
+      - label: "Filter versions"
+        name: versions
+        widget: list
+        required: false
+        collapsed: false
+        label_singular: version
+        summary: "{{fields.label}}"
+        hint: "Other edits of the same shot. Visitors can switch between them in the photo viewer."
+        fields:
+          - { label: "Name", name: label, widget: string, hint: "e.g. Rose, Faded, Gold stamp" }
+          - { label: "Photo", name: image, widget: image, choose_url: false }
+
+  - name: settings
+    label: Site text
+    editor: { preview: false }
+    files:
+      - name: site
+        label: Name, intro and about
+        file: content/settings.json
+        format: json
+        fields:
+          - { label: "Browser tab title", name: site_title, widget: string }
+          - { label: "Full name", name: full_name, widget: string }
+          - { label: "Big name, line 1", name: name_line_1, widget: string }
+          - { label: "Big name, line 2 (pink italic)", name: name_line_2, widget: string }
+          - { label: "Alias (top-left logo)", name: alias, widget: string }
+          - { label: "Small line above your name", name: eyebrow, widget: string }
+          - { label: "Intro", name: intro, widget: text, hint: "Put *stars* around a word to make it italic." }
+          - { label: "Search / share description", name: description, widget: text }
+          - { label: "About heading", name: about_title, widget: string, hint: "*stars* make a word pink italic." }
+          - { label: "About text", name: about_text, widget: text, hint: "Leave an empty line between paragraphs." }
+          - label: "About facts"
+            name: facts
+            widget: list
+            summary: "{{fields.label}}: {{fields.value}}"
+            fields:
+              - { label: Label, name: label, widget: string }
+              - { label: Value, name: value, widget: string }
+          - { label: "Instagram handle", name: instagram_handle, widget: string, required: false }
+          - { label: "Instagram link", name: instagram_url, widget: string, required: false }
+          - label: "Categories"
+            name: categories
+            widget: list
+            allow_add: false
+            allow_remove: false
+            allow_reorder: true
+            summary: "{{fields.name}}"
+            hint: "Rename a category or change its subtitle. Drag to change the order on the site."
+            fields:
+              - { label: "Key (don't change)", name: key, widget: hidden }
+              - { label: Name, name: name, widget: string }
+              - { label: Subtitle, name: subtitle, widget: string }

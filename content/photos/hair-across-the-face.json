@@ -5,5 +5,12 @@
   "order": 70,
   "best": false,
   "pick": false,
-  "camera": ""
+  "camera": "",
+  "main_label": "Clean",
+  "versions": [
+    {
+      "label": "Original edit",
+      "image": "/photos/hair-across-the-face.jpg"
+    }
+  ]
 }

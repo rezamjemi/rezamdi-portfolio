@@ -5,5 +5,12 @@
   "order": 60,
   "best": false,
   "pick": true,
-  "camera": ""
+  "camera": "",
+  "main_label": "Clean",
+  "versions": [
+    {
+      "label": "Original edit",
+      "image": "/photos/framed-by-hand.jpg"
+    }
+  ]
 }

@@ -5,5 +5,12 @@
   "order": 20,
   "best": true,
   "pick": false,
-  "camera": ""
+  "camera": "",
+  "main_label": "Clean",
+  "versions": [
+    {
+      "label": "Original edit",
+      "image": "/photos/against-the-brick.jpg"
+    }
+  ]
 }

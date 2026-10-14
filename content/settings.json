@@ -5,8 +5,8 @@
   "name_line_2": "Monadjemi",
   "alias": "RezaMDI",
   "eyebrow": "Photographs · London, Ontario",
-  "intro": "Portraits first. People caught mid-turn, mid-laugh, mid-gust, plus the *cities* and *coastlines* in between.",
-  "description": "Portraits, cities and landscapes by Reza M. Monadjemi (RezaMDI), a photographer based in London, Ontario.",
+  "intro": "Portraits first. People caught mid-turn, mid-laugh, mid-gust, plus the *cities*, *coastlines* and quiet *gardens* in between.",
+  "description": "Portraits, cities, landscapes and gardens by Reza M. Monadjemi (RezaMDI), a photographer based in London, Ontario.",
   "about_title": "Behind the *lens*",
   "about_text": "I'm Reza M. Monadjemi, also known as RezaMDI, a photographer based in London, Ontario. Most of my work is portraits: people in natural light, on the street, in parks and by the water. Between shoots I photograph the cities and coastlines I pass through.",
   "facts": [
@@ -40,6 +40,11 @@
       "key": "landscape",
       "name": "Landscape",
       "subtitle": "Coast, desert and open sky."
+    },
+    {
+      "key": "garden",
+      "name": "Garden",
+      "subtitle": "One October evening at a house in the woods."
     }
   ]
 }

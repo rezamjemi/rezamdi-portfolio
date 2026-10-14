@@ -1,0 +1,9 @@
+{
+  "title": "Windfall apples",
+  "category": "garden",
+  "image": "/photos/windfall-apples.jpg",
+  "order": 10,
+  "best": true,
+  "pick": false,
+  "camera": ""
+}

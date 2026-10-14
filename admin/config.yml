@@ -33,6 +33,7 @@ collections:
       - { label: People, field: category, pattern: people }
       - { label: City, field: category, pattern: city }
       - { label: Landscape, field: category, pattern: landscape }
+      - { label: Garden, field: category, pattern: garden }
       - { label: "★ Best of category", field: best, pattern: true }
     view_groups:
       - { label: Category, field: category }
@@ -46,6 +47,7 @@ collections:
           - { label: People, value: people }
           - { label: City, value: city }
           - { label: Landscape, value: landscape }
+          - { label: Garden, value: garden }
       - { label: Order, name: order, widget: number, value_type: int, default: 100, hint: "Lower numbers show first within the category (10, 20, 30…). Leave 100 to add at the end." }
       - { label: "Best of category", name: best, widget: boolean, default: false, hint: "Shown large on the home page with a 'Best of' tag. Turn it on for one photo per category." }
       - { label: "Home page pick", name: pick, widget: boolean, default: false, hint: "One of the three smaller photos next to the best one on the home page." }

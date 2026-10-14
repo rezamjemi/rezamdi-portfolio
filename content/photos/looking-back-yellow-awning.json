@@ -1,9 +1,9 @@
 {
   "title": "Looking back, yellow awning",
-  "category": "editorial",
+  "category": "people",
   "image": "/photos/looking-back-yellow-awning.jpg",
-  "order": 30,
+  "order": 130,
   "best": false,
-  "pick": true,
+  "pick": false,
   "camera": ""
 }

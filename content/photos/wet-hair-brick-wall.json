@@ -1,9 +1,9 @@
 {
   "title": "Wet hair, brick wall",
-  "category": "editorial",
+  "category": "people",
   "image": "/photos/wet-hair-brick-wall.jpg",
-  "order": 40,
+  "order": 140,
   "best": false,
-  "pick": true,
+  "pick": false,
   "camera": ""
 }

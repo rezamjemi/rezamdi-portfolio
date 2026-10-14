@@ -1,9 +1,9 @@
 {
   "title": "Laughing at the wall",
-  "category": "editorial",
+  "category": "people",
   "image": "/photos/laughing-at-the-wall.jpg",
-  "order": 10,
-  "best": true,
+  "order": 110,
+  "best": false,
   "pick": false,
   "camera": ""
 }

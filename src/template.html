@@ -253,15 +253,22 @@ footer button:hover{color:var(--accent)}
 .lb.show .lb-bg{opacity:1}
 .lb.show .lb-amb{opacity:.28}
 .lb-img{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;box-shadow:0 30px 80px -10px rgba(0,0,0,.7);border-radius:2px}
-/* zoom: double-click / double-tap the open photo, drag to move */
-.lb-img{touch-action:none;cursor:zoom-in}
+/* zoom: scroll, pinch, double-click or the +/- buttons; drag to move */
+.lb-img{touch-action:none;cursor:zoom-in;max-width:none!important;max-height:none!important}
 .lb.zoomed .lb-img{cursor:grab}
-.lb.zoomed.dragging .lb-img{cursor:grabbing}
-.lb-foot,.lb-nav{transition:opacity .3s,background .3s,transform .4s var(--ease)}
+.lb.dragging .lb-img{cursor:grabbing}
+.lb-foot,.lb-nav{transition:opacity .35s,background .3s,transform .4s var(--ease)}
 .lb.zoomed .lb-foot,.lb.zoomed .lb-nav{opacity:0;pointer-events:none}
 .lb.zoomed .lb-foot *{pointer-events:none}
-.lb-hint{margin-left:auto;margin-right:16px;color:#8f8a86;font:400 11px var(--mono);letter-spacing:.1em;text-transform:uppercase}
-@media (max-width:600px){.lb-hint{display:none}}
+.lb-hint{margin-left:auto;margin-right:14px;color:#8f8a86;font:400 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;transition:opacity .3s}
+.lb.zoomed .lb-hint{opacity:0}
+.lb-zoom{display:flex;align-items:center;gap:2px;margin-right:12px;padding:3px;border:1px solid #3a363c;border-radius:99px;background:rgba(17,16,19,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.lb-zoom button{width:32px;height:32px;padding:0;border:0;border-radius:50%;background:none;color:#f1ece6;font:300 19px/1 var(--display);cursor:pointer;display:grid;place-items:center;transition:background .25s,opacity .25s}
+.lb-zoom button:hover{background:rgba(241,236,230,.12)}
+.lb-zoom button:disabled{opacity:.28;cursor:default;background:none}
+.lb-zoom .pct{width:auto;min-width:54px;padding:0 8px;border-radius:99px;font:400 11px var(--mono);letter-spacing:.06em;color:#cfc7c0}
+@media (max-width:380px){.lb .lb-top{padding-inline:12px;letter-spacing:.02em;font-size:11px}.lb .lb-zoom .pct{min-width:40px}}
+@media (max-width:600px){.lb-hint{display:none}.lb-top{gap:8px}#lb-n{white-space:nowrap}.lb .lb-x{flex:none;box-sizing:border-box;width:38px;height:38px;padding:0;font-size:0;line-height:0;border-radius:50%;display:grid;place-items:center}.lb .lb-x::after{content:'✕';font-size:14px;line-height:1}.lb-zoom{margin-left:auto;margin-right:0}.lb .lb-zoom button{width:28px;height:28px;font-size:17px}.lb .lb-zoom .pct{min-width:46px;padding:0 4px;font-size:11px}}
 .lb-ui{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s .1s}
 .lb.show .lb-ui{opacity:1}
 .lb-ui > *{pointer-events:auto}
@@ -473,59 +480,110 @@ function fit(i){
   return {x:(W-w)/2,y:top+(ah-h)/2,w,h};
 }
 function place(r){li.style.width=r.w+'px';li.style.height=r.h+'px';li.style.transform=`translate(${r.x}px,${r.y}px)`;}
-/* zoom: double-click (or double-tap) toggles, drag pans while zoomed */
-let Z=1,px=0,py=0,lastTap=0,tapX=0,tapY=0,lastPT='mouse',drag=null;
-const TOUCH=matchMedia('(hover:none)').matches;
-const hint=document.createElement('span');hint.className='lb-hint';
-document.getElementById('lb-n').after(hint);
+/* zoom: scroll wheel / trackpad pinch / touch pinch / double-click / +- buttons.
+   The photo glides toward its target size and position each frame, so every change is smooth. */
+let Z=1,px=0,py=0,tz=1,tpx=0,tpy=0,raf=0,lastT=0,drag=null,pinch=null,pinchEnd=0,lastTap=0,tapX=0,tapY=0,lastPT='mouse',moved=0;
+const pts=new Map(),TOUCH=matchMedia('(hover:none)').matches;
+const zbox=document.createElement('span');zbox.className='lb-zoom';
+zbox.innerHTML='<button type="button" class="zo" aria-label="Zoom out">−</button><button type="button" class="pct" aria-label="Fit to screen">100%</button><button type="button" class="zi" aria-label="Zoom in">+</button>';
+const hint=document.createElement('span');hint.className='lb-hint';hint.textContent=TOUCH?'Pinch or double-tap to zoom':'Scroll or double-click to zoom';
+document.getElementById('lb-n').after(hint,zbox);
+const [zOut,zPct,zIn]=zbox.querySelectorAll('button');
 li.dataset.cur='Zoom';
-function setHint(){hint.textContent=Z>1?(TOUCH?'Double-tap to zoom out':'Double-click to zoom out · drag to move'):(TOUCH?'Double-tap to zoom':'Double-click to zoom');}
-setHint();
-function clampPan(r){
-  const W=innerWidth,H=innerHeight,w=r.w*Z,h=r.h*Z;
-  px=w<=W?(r.w-w)/2+(W/2-(r.x+r.w/2)):Math.min(-r.x,Math.max(W-r.x-w,px));
-  py=h<=H?(r.h-h)/2+(H/2-(r.y+r.h/2)):Math.min(-r.y,Math.max(H-r.y-h,py));
+function zmax(){const r=fit(cur_i),nat=Math.max(li.naturalWidth||0,DATA[cur_i].w);return Math.max(2.5,Math.min(4,nat/r.w*2.2));}
+function bounds(r,z,x,y){ // keep the photo on screen; at 100% it sits exactly where it started
+  if(z<=1.0005)return [0,0];
+  const W=innerWidth,H=innerHeight,w=r.w*z,h=r.h*z;
+  const axis=(pos,size,View)=>size<=View?Math.min(View-size,Math.max(0,pos)):Math.min(0,Math.max(View-size,pos));
+  return [axis(r.x+x,w,W)-r.x, axis(r.y+y,h,H)-r.y];
 }
-function applyZ(anim){
-  const r=fit(cur_i);if(Z>1)clampPan(r);else{px=py=0;}
-  li.style.transition=anim&&!RM?'transform .38s cubic-bezier(.16,1,.3,1)':'none';
-  li.style.transform=`translate(${r.x+px}px,${r.y+py}px) scale(${Z})`;
-  if(anim)setTimeout(()=>{li.style.transition='';},400);
-  lb.classList.toggle('zoomed',Z>1);li.dataset.cur=Z>1?'Drag':'Zoom';
-  if(typeof ringT!=='undefined'&&ring.classList.contains('vf'))ringT.textContent=li.dataset.cur.toLowerCase();
-  setHint();
+function render(){
+  const r=fit(cur_i);
+  li.style.width=r.w*Z+'px';li.style.height=r.h*Z+'px';li.style.transform=`translate(${r.x+px}px,${r.y+py}px)`;
+  const on=tz>1.01;lb.classList.toggle('zoomed',on);
+  const lab=on?'Drag':'Zoom';if(li.dataset.cur!==lab){li.dataset.cur=lab;if(typeof ringT!=='undefined'&&ring.classList.contains('vf'))ringT.textContent=lab.toLowerCase();}
+  zPct.textContent=Math.round(tz*100)+'%';zOut.disabled=!on;zIn.disabled=tz>=zmax()-.01;
 }
-function zoomAt(cx,cy){
-  if(busy)return;const r=fit(cur_i);
-  if(Z>1){Z=1;applyZ(true);return;}
-  sharpen(cur_i);
-  const nat=li.naturalWidth||DATA[cur_i].w;
-  const z=Math.max(2,Math.min(3.5,nat/r.w*1.6));
-  const lx=(cx-r.x)/r.w,ly=(cy-r.y)/r.h;          // where on the photo you clicked (0..1)
-  Z=z;px=cx-r.x-lx*r.w*z;py=cy-r.y-ly*r.h*z;     // keep that spot under the pointer
-  applyZ(true);
+function step(t){
+  raf=0;const dt=lastT?Math.min(64,t-lastT):16.7;lastT=t;
+  const k=RM?1:1-Math.pow(1-.2,dt/16.7);
+  Z+=(tz-Z)*k;px+=(tpx-px)*k;py+=(tpy-py)*k;
+  if(Math.abs(tz-Z)<.0008&&Math.abs(tpx-px)<.25&&Math.abs(tpy-py)<.25){Z=tz;px=tpx;py=tpy;}
+  render();
+  if(Z!==tz||px!==tpx||py!==tpy)raf=requestAnimationFrame(step);else lastT=0;
 }
-function unzoom(anim){if(Z===1)return;Z=1;px=py=0;drag=null;lb.classList.remove('dragging');applyZ(!!anim);}
-li.addEventListener('dblclick',e=>{if(lastPT==='touch')return;e.preventDefault();zoomAt(e.clientX,e.clientY);});
+function kick(){if(!raf){lastT=0;raf=requestAnimationFrame(step);}}
+function zoomTo(z,cx,cy){
+  if(busy)return;const r=fit(cur_i);z=Math.min(zmax(),Math.max(1,z));
+  const lx=(cx-r.x-tpx)/tz,ly=(cy-r.y-tpy)/tz;          // the spot under the pointer stays put
+  [tpx,tpy]=bounds(r,z,cx-r.x-lx*z,cy-r.y-ly*z);tz=z;
+  if(z>1)sharpen(cur_i);kick();
+}
+function centre(){const r=fit(cur_i);return [r.x+r.w/2,r.y+r.h/2];}
+function unzoom(anim){
+  pts.clear();drag=pinch=null;lb.classList.remove('dragging');
+  if(tz===1&&Z===1&&!px&&!py)return;
+  tz=1;tpx=tpy=0;
+  if(anim){kick();return;}
+  if(raf){cancelAnimationFrame(raf);raf=0;}Z=1;px=py=0;render();
+}
+zOut.addEventListener('click',e=>{e.stopPropagation();zoomTo(tz/1.6,...centre());});
+zIn.addEventListener('click',e=>{e.stopPropagation();zoomTo(tz*1.6,...centre());});
+zPct.addEventListener('click',e=>{e.stopPropagation();unzoom(true);});
+li.addEventListener('dblclick',e=>{if(lastPT==='touch')return;e.preventDefault();tz>1.01?unzoom(true):zoomTo(2.2,e.clientX,e.clientY);});
+lb.addEventListener('wheel',e=>{
+  if(!lb.classList.contains('on')||busy)return;e.preventDefault();
+  const d=e.deltaY*(e.deltaMode===1?16:1);
+  zoomTo(tz*Math.exp(-d*(e.ctrlKey?.01:.0016)),e.clientX,e.clientY);
+},{passive:false});
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function startDrag(p){drag={x:p.x,y:p.y,px:tpx,py:tpy,lx:p.x,ly:p.y,lt:performance.now(),vx:0,vy:0};lb.classList.add('dragging');}
 li.addEventListener('pointerdown',e=>{
-  lastPT=e.pointerType;
-  if(Z>1){drag={x:e.clientX,y:e.clientY,px,py,id:e.pointerId};li.setPointerCapture(e.pointerId);lb.classList.add('dragging');e.preventDefault();}
+  lastPT=e.pointerType;moved=0;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  try{li.setPointerCapture(e.pointerId);}catch(_){}
+  if(pts.size===2){const [a,b]=[...pts.values()];drag=null;
+    pinch={d:dist(a,b)||1,z:tz,mx:(a.x+b.x)/2,my:(a.y+b.y)/2,px:tpx,py:tpy};sharpen(cur_i);}
+  else if(pts.size===1&&tz>1.01)startDrag(pts.get(e.pointerId));
+  e.preventDefault();
 });
 li.addEventListener('pointermove',e=>{
-  if(!drag||e.pointerId!==drag.id)return;
-  px=drag.px+e.clientX-drag.x;py=drag.py+e.clientY-drag.y;
-  const r=fit(cur_i);clampPan(r);li.style.transition='none';
-  li.style.transform=`translate(${r.x+px}px,${r.y+py}px) scale(${Z})`;
+  if(!pts.has(e.pointerId))return;const p=pts.get(e.pointerId);moved+=Math.abs(e.clientX-p.x)+Math.abs(e.clientY-p.y);p.x=e.clientX;p.y=e.clientY;
+  const r=fit(cur_i);
+  if(pinch&&pts.size>=2){
+    const [a,b]=[...pts.values()],mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+    let z=pinch.z*dist(a,b)/pinch.d;const zm=zmax();
+    if(z>zm)z=zm+(z-zm)*.25;if(z<1)z=1-(1-z)*.4;                 // soft limits while pinching
+    const lx=(pinch.mx-r.x-pinch.px)/pinch.z,ly=(pinch.my-r.y-pinch.py)/pinch.z;
+    tz=Z=z;tpx=px=mx-r.x-lx*z;tpy=py=my-r.y-ly*z;render();
+  }else if(drag){
+    const now=performance.now(),dt=Math.max(1,now-drag.lt);
+    drag.vx=drag.vx*.6+(e.clientX-drag.lx)/dt*.4;drag.vy=drag.vy*.6+(e.clientY-drag.ly)/dt*.4;drag.lx=e.clientX;drag.ly=e.clientY;drag.lt=now;
+    const rx=drag.px+e.clientX-drag.x,ry=drag.py+e.clientY-drag.y,[cx,cy]=bounds(r,tz,rx,ry);
+    tpx=px=cx+(rx-cx)*.3;tpy=py=cy+(ry-cy)*.3;                // a little stretch past the edges
+    if(raf){cancelAnimationFrame(raf);raf=0;}Z=tz;render();
+  }
 });
-function endDrag(e){if(drag&&e.pointerId===drag.id){drag=null;lb.classList.remove('dragging');}}
-li.addEventListener('pointerup',e=>{
-  endDrag(e);
-  if(e.pointerType!=='touch')return;
-  const now=Date.now();
-  if(now-lastTap<320&&Math.hypot(e.clientX-tapX,e.clientY-tapY)<40){lastTap=0;zoomAt(e.clientX,e.clientY);}
-  else{lastTap=now;tapX=e.clientX;tapY=e.clientY;}
-});
-li.addEventListener('pointercancel',endDrag);
+function release(e){
+  if(!pts.has(e.pointerId))return;pts.delete(e.pointerId);const r=fit(cur_i);
+  if(pinch&&pts.size<2){
+    pinch=null;pinchEnd=Date.now();tz=Math.min(zmax(),Math.max(1,tz));
+    [tpx,tpy]=bounds(r,tz,tpx,tpy);kick();
+    if(pts.size===1&&tz>1.01)startDrag([...pts.values()][0]);
+    return;
+  }
+  if(drag&&!pts.size){
+    const fast=performance.now()-drag.lt<80;
+    [tpx,tpy]=bounds(r,tz,tpx+(fast?drag.vx*220:0),tpy+(fast?drag.vy*220:0));   // glide, then settle inside the edges
+    drag=null;lb.classList.remove('dragging');kick();
+  }
+  if(e.type==='pointerup'&&e.pointerType==='touch'&&moved<12&&Date.now()-pinchEnd>350){
+    const now=Date.now();
+    if(now-lastTap<320&&Math.hypot(e.clientX-tapX,e.clientY-tapY)<40){lastTap=0;tz>1.01?unzoom(true):zoomTo(2.2,e.clientX,e.clientY);}
+    else{lastTap=now;tapX=e.clientX;tapY=e.clientY;}
+  }
+}
+li.addEventListener('pointerup',release);li.addEventListener('pointercancel',release);
+render();
 function info(i){
   const d=DATA[i];document.getElementById('lb-t').textContent=d.title;document.getElementById('lb-e').textContent=d.exif||CAT[d.cat];
   document.getElementById('lb-n').textContent=CAT[d.cat].toUpperCase()+' · '+String(i+1).padStart(2,'0')+' / '+DATA.length;
@@ -599,10 +657,10 @@ document.getElementById('lb-nx').onclick=()=>go(1);
 [...strip.children].forEach((b,k)=>b.addEventListener('click',()=>go(0,k)));
 lb.querySelector('.lb-bg').addEventListener('click',closeLB);
 lb.addEventListener('click',e=>{if(e.target===lb||e.target.classList.contains('lb-ui'))closeLB();});
-addEventListener('keydown',e=>{if(!lb.classList.contains('on'))return;if(e.key==='Escape'){if(Z>1){unzoom(true);return;}closeLB();}if(e.key==='ArrowLeft')go(-1);if(e.key==='ArrowRight')go(1);const n=+e.key;if(n>=1&&n<=9&&DATA[cur_i].v&&n<=DATA[cur_i].v.length)setVar(n-1);});
+addEventListener('keydown',e=>{if(!lb.classList.contains('on'))return;if(e.key==='Escape'){if(tz>1.01){unzoom(true);return;}closeLB();}if(e.key==='+'||e.key==='='){zoomTo(tz*1.6,...centre());return;}if(e.key==='-'){zoomTo(tz/1.6,...centre());return;}if(e.key==='0'){unzoom(true);return;}if(e.key==='ArrowLeft')go(-1);if(e.key==='ArrowRight')go(1);const n=+e.key;if(n>=1&&n<=9&&DATA[cur_i].v&&n<=DATA[cur_i].v.length)setVar(n-1);});
 addEventListener('resize',()=>{if(lb.classList.contains('on')&&!busy){unzoom();place(fit(cur_i));}});
 let tx=null,ty=null;
 lb.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
-lb.addEventListener('touchend',e=>{if(tx==null)return;if(Z>1||e.target===li&&Date.now()-lastTap<50){tx=null;return;}const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+lb.addEventListener('touchend',e=>{if(tx==null)return;if(tz>1.01||Z>1.01||pinch||Date.now()-pinchEnd<400){tx=null;return;}const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
   if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(dx<0?1:-1);else if(dy>90)closeLB();tx=null;});
 </script>

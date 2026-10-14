@@ -31,6 +31,7 @@ collections:
     sortable_fields: [category, order, title]
     view_filters:
       - { label: People, field: category, pattern: people }
+      - { label: Editorial, field: category, pattern: editorial }
       - { label: City, field: category, pattern: city }
       - { label: Landscape, field: category, pattern: landscape }
       - { label: Garden, field: category, pattern: garden }
@@ -45,6 +46,7 @@ collections:
         widget: select
         options:
           - { label: People, value: people }
+          - { label: Editorial, value: editorial }
           - { label: City, value: city }
           - { label: Landscape, value: landscape }
           - { label: Garden, value: garden }
